@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blinkit: Dark Store Expansion and Prediction</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--y:#F8CB46;--g:#0C831F;--bk:#06120a;--ink:#f3f7ef;--mut:#a9c2ae;--card:rgba(255,255,255,.045);--line:rgba(248,203,70,.2)}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:radial-gradient(1100px 620px at 85% -8%,rgba(12,131,31,.55),transparent 60%),radial-gradient(900px 520px at -8% 45%,rgba(248,203,70,.12),transparent 62%),var(--bk);min-height:100vh;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.55;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 .8  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(248,203,70,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(248,203,70,.035) 1px,transparent 1px);background-size:56px 56px}
+main{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:0 18px 56px}
+.hero{padding:64px 0 28px}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--y);color:#10210f;font-weight:800;font-size:.78rem;letter-spacing:.08em;padding:6px 14px;border-radius:999px}
+h1{font-size:clamp(2.2rem,6.2vw,4.1rem);line-height:1.02;letter-spacing:-.025em;margin:18px 0 14px;font-weight:800}
+h1 em{font-style:normal;color:var(--y)}
+.lead{color:var(--mut);max-width:680px;font-size:1.05rem;margin:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:28px}
+.kpi{background:linear-gradient(160deg,rgba(12,131,31,.35),rgba(255,255,255,.03));border:1px solid var(--line);border-radius:18px;padding:16px}
+.kpi b{display:block;font-size:1.7rem;color:var(--y);font-weight:800;line-height:1.1}
+.kpi span{color:var(--mut);font-size:.82rem}
+section{padding:46px 0 6px}
+.kick{color:var(--y);text-transform:uppercase;letter-spacing:.16em;font-size:.72rem;font-weight:800}
+h2{font-size:1.7rem;letter-spacing:-.01em;margin:6px 0 18px;font-weight:800}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;backdrop-filter:blur(8px)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:760px){.g2,.g4{grid-template-columns:1fr}}
+.big{font-size:3rem;font-weight:800;color:var(--y);line-height:1}
+h3{margin:0 0 8px;font-size:1.05rem;font-weight:700}
+ul{margin:0;padding-left:18px;color:var(--mut)} li{margin:4px 0}
+.chart{position:relative;height:270px}
+.sw{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sw .card h3{display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.ans{display:grid;grid-template-columns:auto 1fr 1fr;gap:10px;align-items:stretch;font-size:.9rem}
+.ans div{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--mut)}
+.ans .hd{background:none;border:none;padding:0;color:var(--y);font-weight:800;display:flex;align-items:center;justify-content:center;text-align:center}
+.ans .q{color:var(--ink)} .ans .q b{color:var(--y)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.step{background:var(--g);color:#fff;border-radius:12px;padding:10px 14px;font-weight:700;font-size:.9rem}
+.arr{color:var(--y);font-weight:800}
+.chip{display:inline-block;padding:4px 12px;border-radius:999px;font-size:.8rem;font-weight:700;margin:3px 4px 3px 0}
+.hi{background:var(--y);color:#10210f}.md{background:rgba(248,203,70,.25);color:var(--y)}.lo{background:rgba(255,255,255,.1);color:var(--ink)}
+.note{color:var(--mut);font-size:.82rem;margin-top:10px}
+.star .card{position:relative;overflow:hidden}
+.star .l{position:absolute;right:12px;top:-14px;font-size:5.5rem;font-weight:900;color:rgba(248,203,70,.12);line-height:1}
+.quote{border-left:4px solid var(--y);padding:10px 16px;margin-top:14px;background:rgba(12,131,31,.18);border-radius:0 14px 14px 0;font-size:1rem}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+th{color:var(--y);font-weight:700}
+td{color:var(--mut)}
+.callout{border-left:4px solid var(--y);background:rgba(12,131,31,.18);padding:12px 16px;border-radius:0 14px 14px 0;margin-top:14px;color:var(--ink)}
+footer{color:var(--mut);font-size:.8rem;margin-top:48px;border-top:1px solid var(--line);padding-top:16px}
+</style></head>
+<body><main>
+
+<header class="hero">
+<span class="pill">⚡ BLINKIT · CASE STUDY</span>
+<h1>10 minutes.<br><em>2,751 dark stores.</em><br>One forecasting problem.</h1>
+<p class="lead">How Blinkit scaled quick commerce to ₹20,940 cr of quarterly NOV, why dark store expansion is now the binding constraint, and where a store-level prediction model earns its keep.</p>
+<div class="kpis">
+<div class="kpi"><b>₹20,940 cr</b><span>Q2FY27 quick commerce NOV, +79% YoY</span></div>
+<div class="kpi"><b>2,751</b><span>Dark stores, +308 net in the quarter</span></div>
+<div class="kpi"><b>37.0 M</b><span>Monthly transacting customers</span></div>
+<div class="kpi"><b>0.9%</b><span>Adjusted EBITDA margin (% of NOV)</span></div>
+</div>
+</header>
+
+<section>
+<div class="kick">Framework 01 · STAR</div>
+<h2>The case in four moves</h2>
+<div class="g4 star">
+<div class="card"><div class="l">S</div><h3>Situation</h3><p style="margin:0;color:var(--mut)">NOV up 79% YoY. Margins turned positive for the first time in the quarters shown.</p></div>
+<div class="card"><div class="l">T</div><h3>Task</h3><p style="margin:0;color:var(--mut)">Add about 375 stores a quarter to reach 3,500 by March 2027, without diluting productivity.</p></div>
+<div class="card"><div class="l">A</div><h3>Action</h3><p style="margin:0;color:var(--mut)">Shifted to own inventory, expanded into smaller cities with first-mile supply, and widened assortment.</p></div>
+<div class="card"><div class="l">R</div><h3>Result</h3><p style="margin:0;color:var(--mut)">NOV per store per day up 17% YoY to ₹9.02 lakh. Pace is 308 net adds, about 67 short.</p></div>
+</div>
+</section>
+
+<section>
+<div class="kick">Framework 02 · SWOT</div>
+<h2>Where Blinkit stands</h2>
+<div class="sw">
+<div class="card"><h3><span class="dot" style="background:var(--g)"></span>Strengths</h3><ul><li>10-minute promise backed by real-time fulfilment</li><li>37 M customers, habit-driven reorders</li><li>Contribution 5.3% of NOV; ₹16,475 cr cash</li></ul></div>
+<div class="card"><h3><span class="dot" style="background:var(--y)"></span>Weaknesses</h3><ul><li>Adjusted EBITDA only 0.9% of NOV</li><li>Working capital swings with festive stocking</li><li>Discovery weak: 56% find checkout picks unhelpful</li></ul></div>
+<div class="card"><h3><span class="dot" style="background:#7fd28f"></span>Opportunities</h3><ul><li>Small cities: NAOV at 85–90% of metros</li><li>NCR assortment 80k → 100k SKUs</li><li>Brand advertising revenue and new categories</li></ul></div>
+<div class="card"><h3><span class="dot" style="background:var(--mut)"></span>Threats</h3><ul><li>Zepto and Instamart in shared catchments</li><li>Labour Codes and state gig-worker laws</li><li>Rain and GST shocks to demand timing</li></ul></div>
+</div>
+</section>
+
+<section>
+<div class="kick">Framework 03 · Ansoff growth matrix</div>
+<h2>Where the growth comes from</h2>
+<div class="ans">
+<div class="hd">Existing<br>products</div>
+<div class="card" style="padding:0;background:none;border:none"><div style="padding:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;color:var(--mut)"><b style="color:var(--y)">Market penetration</b><br><span class="q"><b>MTC 20.8 M → 37.0 M</b> in a year. Orders per customer and basket depth.</span></div></div>
+<div style="padding:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;color:var(--mut)"><b style="color:var(--y)">Market development</b><br><span class="q">New cities. Small-city stores reach 1,000 orders a day at metro pace.</span></div>
+<div class="hd">New<br>products</div>
+<div style="padding:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;color:var(--mut)"><b style="color:var(--y)">Product development</b><br><span class="q">Deeper and wider: NCR <b>80k → 100k</b> SKUs; large appliances, high-value items.</span></div>
+<div style="padding:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;color:var(--mut)"><b style="color:var(--y)">Diversification</b><br><span class="q">Ad revenue from brands and warehousing services. Private label ruled out.</span></div>
+</div>
+</section>
+
+<section>
+<div class="kick">Strategic positioning</div>
+<h2>How the rivals compare</h2>
+<div class="g2">
+<div class="card"><h3>Competitive radar</h3><div class="chart"><canvas id="radar"></canvas></div><p class="note">Qualitative scores (1–5) drawn from the discovery deck's app-store and product signals. Directional, not measured.</p></div>
+<div class="card"><h3>Porter's five forces, quick read</h3>
+<p style="margin:0 0 10px"><span class="chip hi">Rivalry: High</span><span class="chip md">Buyers: Medium</span><span class="chip md">Suppliers: Medium</span><span class="chip lo">Substitutes: Low</span><span class="chip md">New entrants: Medium</span></p>
+<p style="margin:0;color:var(--mut)">Store capex (around ₹1 crore each) and dense supply chains raise the entry bar. Agentic shopping is seen as a low threat for repeat-order fulfilment, but it is the exposed use case.</p></div>
+</div>
+</section>
+
+<section>
+<div class="kick">Financial trajectory</div>
+<h2>Growth with margin</h2>
+<div class="g2">
+<div class="card"><h3>Quick commerce NOV (₹ cr)</h3><div class="chart"><canvas id="nov"></canvas></div></div>
+<div class="card"><h3>Margins (% of NOV)</h3><div class="chart"><canvas id="mar"></canvas></div></div>
+</div>
+</section>
+
+<section>
+<div class="kick">Root cause analysis</div>
+<h2>Why dark store forecasting fails</h2>
+<p class="lead">Five structural issues make a macro-driven forecast unreliable for dark stores.</p>
+<div class="card"><h3>1 · The flaw of "macro" data</h3>
+<p>A common shortcut ranks cities by income, population and density, then assumes small cities will be weak. Blinkit's own data contradicts most of those assumptions. Management says income matters, but less than people expect.</p>
+<div class="tbl"><table>
+<tr><th>Assumption in the market</th><th>What Blinkit's data shows</th><th>Implication for the model</th></tr>
+<tr><td>Incomes are lower in small cities</td><td>True, but matters less than expected</td><td>Give income a low weight. Use observed catchment behaviour.</td></tr>
+<tr><td>Baskets are smaller</td><td>Contradicted. NAOV is 85–90% of metro levels, with premium beverages, branded diapers and gaming consoles in baskets.</td><td>Do not scale metro basket priors down by a fixed income ratio.</td></tr>
+<tr><td>Density is too thin</td><td>Contradicted. Cities contributing about 96% of NOV are contribution-positive.</td><td>Learn density thresholds from data, not from assumptions.</td></tr>
+<tr><td>Retention is weaker</td><td>Contradicted. Retention is comparable to metros.</td><td>Share cohort retention curves across city tiers.</td></tr>
+</table></div></div>
+<div class="g2" style="margin-top:14px">
+<div class="card"><h3>2 · Latent demand</h3><p>Management calls small-city demand "chronically underserved." Products that are unavailable locally never appear in sales history, so a model fit on past sales underestimates potential. Add proxies: app searches for unstocked items, out-of-zone orders and add-to-cart abandonment.</p></div>
+<div class="card"><h3>3 · Capacity, not demand</h3><p>A store has a finite throughput, so orders per day reflect capacity as much as demand. Low-margin discount orders use the same picker and rider capacity as regular orders. Forecasting raw demand overstates what a store can fulfil.</p></div>
+<div class="card"><h3>4 · Structural breaks</h3><p>The shift to own inventory (about 80% of quick commerce NOV in Q2FY26, target about 90%) changed what revenue means. Adjusted Revenue grew 76% reported and 58% like-for-like. The Q2FY26 GST cut caused a purchase delay, and festive builds swing working capital. Model these as explicit regressors.</p></div>
+<div class="card"><h3>5 · Metric definitions</h3><p>GOV overstates growth because discounts are funded by restaurants and brands. In food delivery, Q2FY26 GOV growth was 18% against 14% NOV growth. In quick commerce, AOV rose 5% while NAOV fell 1%, with opposite conclusions. Forecast NOV or NAOV, never GOV or AOV.</p></div>
+</div>
+<div class="callout"><b>Root cause in one line:</b> the forecast is built on city macro proxies, supply-censored sales history, unlabelled structural breaks, and targets that mix discounts with demand.</div>
+</section>
+
+<section>
+<div class="kick">Dark store expansion and prediction</div>
+<h2>Can the network keep up?</h2>
+<div class="g2">
+<div class="card"><h3>Store path (count)</h3><div class="chart"><canvas id="path"></canvas></div><p class="note">Guidance path is an interpolation between disclosed targets. Management has not published a quarterly path.</p></div>
+<div class="card">
+<div class="big">308 <span style="font-size:1rem;color:var(--mut);font-weight:600">vs 375 needed</span></div>
+<p style="color:var(--mut);margin:10px 0 14px">Net adds per quarter. The gap is about 67 stores a quarter, or 133 stores short of 3,500 by March 2027 at the current pace.</p>
+<div class="flow">
+<span class="step">Catchment demand</span><span class="arr">→</span>
+<span class="step">Ramp forecast</span><span class="arr">→</span>
+<span class="step">Capacity check</span><span class="arr">→</span>
+<span class="step">Open / hold</span><span class="arr">→</span>
+<span class="step">Recalibrate</span>
+</div>
+<p class="note">Use catchment behaviour, not city income, as the main signal. Score capacity separately from demand. Add failed stores (such as the hyperlocal shutdown) to training data.</p>
+</div>
+</div>
+
+<div class="card" style="margin-top:14px"><h3>Store footprint and net additions</h3>
+<div class="tbl"><table>
+<tr><th>Quarter</th><th>Q2FY25</th><th>Q3FY25</th><th>Q4FY25</th><th>Q1FY26</th><th>Q2FY26</th><th>Q3FY26</th><th>Q4FY26</th><th>Q1FY27</th><th>Q2FY27</th></tr>
+<tr><td>Stores (end)</td><td>791</td><td>1,007</td><td>1,301</td><td>1,544</td><td>1,816</td><td>2,027</td><td>2,243</td><td>2,443</td><td>2,751</td></tr>
+<tr><td>Net new</td><td>–</td><td>216</td><td>294</td><td>243</td><td>272</td><td>211</td><td>216</td><td>200</td><td>308</td></tr>
+</table></div></div>
+<div class="g2" style="margin-top:14px">
+<div class="card"><h3>Guidance math</h3>
+<div class="tbl"><table>
+<tr><th>Scenario</th><th>Net adds per quarter</th><th>Mar 2027</th><th>Mar 2028</th></tr>
+<tr><td>Guidance</td><td>About 375 for two quarters, then about 375 a quarter</td><td>3,500</td><td>5,000</td></tr>
+<tr><td>Q2FY27 pace</td><td>308</td><td>About 3,367</td><td>About 4,599</td></tr>
+</table></div>
+<p class="note">Derived. Management has not published a quarterly path. Management says expansion has accelerated and that smaller-city and newer-category stores will make up most of it.</p></div>
+<div class="card"><h3>Target variables</h3><ul>
+<li><b>Orders per day at day 30, 60 and 90</b>, benchmarked against the 1,000-a-day level management cites.</li>
+<li><b>NAOV and category mix</b>, not GOV.</li>
+<li><b>Months to contribution breakeven</b> per store.</li>
+<li><b>Store-level Adjusted EBITDA trajectory</b>. Mature cities already run above 5%.</li>
+<li><b>Quarterly net additions</b> by city and cluster, tested against guidance.</li>
+</ul></div>
+</div>
+<div class="g2" style="margin-top:14px">
+<div class="card"><h3>Candidate features</h3>
+<div class="tbl"><table>
+<tr><th>Group</th><th>Features</th></tr>
+<tr><td>Catchment demand</td><td>MTC in adjacent pincodes, searches for unstocked items, out-of-zone orders</td></tr>
+<tr><td>Supply and logistics</td><td>Distance to mother warehouse, first-mile lead time, active riders in zone</td></tr>
+<tr><td>Store design</td><td>SKU count at opening, space, picker capacity</td></tr>
+<tr><td>Competition</td><td>Competitor store density within a radius (Zepto, Instamart)</td></tr>
+<tr><td>Calendar and policy</td><td>Festival, GST-change, heat and rain flags</td></tr>
+<tr><td>Cohort</td><td>Store age in weeks, cohort month, city tier (weak prior only)</td></tr>
+</table></div></div>
+<div class="card"><h3>Validation and pitfalls</h3><ul>
+<li><b>Validate by opening cohort and held-out city</b>, not random rows. Random splits leak future store information.</li>
+<li><b>Include failures.</b> Eternal wrote down ₹8 crore on Zomato Local Services after closing its hyperlocal operations. A model trained only on surviving stores is overconfident.</li>
+<li><b>Keep the operational-day definition</b> of NOV per store per day consistent.</li>
+<li><b>Mark structural breaks</b> from the 1P shift, GST change and festive build.</li>
+<li><b>Forecast hierarchically</b> (store, cluster, city, national) and reconcile to guidance.</li>
+<li><b>Report intervals, not points.</b> Capex decisions depend on the downside case.</li>
+</ul></div>
+</div>
+<div class="card" style="margin-top:14px"><h3>Productivity check</h3>
+<p style="margin:0">NOV per store per day rose from ₹7.71 lakh (Q2FY26) to ₹9.02 lakh (Q2FY27) while the network grew about 51%. New stores have not diluted productivity so far. The forecast should test whether that holds in smaller and newer-category markets, where ramp and mix are less proven.</p></div>
+</section>
+
+<section>
+<div class="kick">Customer journey</div>
+<h2>Need-led, fast, low-patience</h2>
+<div class="g2">
+<div class="card"><h3>Behaviour signals (survey)</h3><div class="chart"><canvas id="cust"></canvas></div></div>
+<div class="card"><h3>What this means for stores</h3><ul><li>Stock depth on high-frequency items decides the first impression.</li><li>Checkout must not slow the order, so recommendations need one item and one reason.</li><li>Picker layout and rider supply set the 10-minute ceiling.</li></ul>
+<div class="quote">"I usually open Blinkit for one specific thing and check out quickly. I rarely spend time exploring other categories."<br><span class="note">Interview quote, discovery deck</span></div></div>
+</div>
+</section>
+
+<section>
+<div class="kick">Strategic goals</div>
+<h2>Where Blinkit is heading</h2>
+<div class="g4">
+<div class="card"><h3>Mar 2027</h3><div class="big" style="font-size:2.2rem">3,500</div><p class="note" style="margin:6px 0 0">stores (raised from 3,000)</p></div>
+<div class="card"><h3>Mar 2028</h3><div class="big" style="font-size:2.2rem">5,000</div><p class="note" style="margin:6px 0 0">stores (current plan)</p></div>
+<div class="card"><h3>3-year target</h3><div class="big" style="font-size:2.2rem">60%</div><p class="note" style="margin:6px 0 0">NOV CAGR, about 4.1× in three years</p></div>
+<div class="card"><h3>Margin</h3><div class="big" style="font-size:2.2rem">+1 pp</div><p class="note" style="margin:6px 0 0">net gain from own inventory over 4–6 quarters</p></div>
+</div>
+</section>
+
+<section>
+<div class="kick">Risk lens</div>
+<h2>What could break the plan</h2>
+<div class="card">
+<span class="chip hi">Margin vs growth pace</span><span class="chip hi">Working capital</span><span class="chip md">Subscale small cities</span><span class="chip md">Competition in shared catchments</span><span class="chip md">Gig and labour rules</span><span class="chip lo">Weather and calendar shocks</span>
+</div>
+</section>
+
+<section>
+<div class="kick">Key takeaways</div>
+<h2>Business lessons</h2>
+<div class="g2">
+<div class="card"><h3>1 · Measure NOV, not GOV</h3><p style="margin:0;color:var(--mut)">Discounts inflate GOV. Forecast on net order value and NAOV.</p></div>
+<div class="card"><h3>2 · Let the catchment lead</h3><p style="margin:0;color:var(--mut)">Blinkit's small-city data contradicts most macro assumptions.</p></div>
+<div class="card"><h3>3 · Plan against the pipeline</h3><p style="margin:0;color:var(--mut)">At 308 net adds a quarter, the March 2027 target is out of reach. Accuracy on new-store ramp matters most.</p></div>
+<div class="card"><h3>4 · Learn from closures</h3><p style="margin:0;color:var(--mut)">Failed operations are the best negative examples a model can get.</p></div>
+</div>
+</section>
+
+<footer>Sources: Eternal Limited Q2FY27 and Q2FY26 shareholder letters and financial statements; Blinkit discovery case study deck. Derived figures (store path, guidance gap, productivity) are calculated from disclosed numbers. Qualitative radar scores are illustrative. Market-size data is not included.</footer>
+</main>
+<script>
+Chart.defaults.color='#a9c2ae';Chart.defaults.borderColor='rgba(248,203,70,.12)';
+const Y='#F8CB46',G='#0C831F',L='#7fd28f',M='#a9c2ae';
+const Q=['Q2FY25','Q3FY25','Q4FY25','Q1FY26','Q2FY26','Q3FY26','Q4FY26','Q1FY27','Q2FY27'];
+const op={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{color:'rgba(248,203,70,.08)'}},y:{grid:{color:'rgba(248,203,70,.08)'}}}};
+new Chart(document.getElementById('radar'),{type:'radar',data:{labels:['Reorder speed','Discovery','Reach and trust','Category breadth','Store rating'],datasets:[{label:'Blinkit',data:[5,2,3,4,4],borderColor:Y,backgroundColor:'rgba(248,203,70,.25)'},{label:'Zepto',data:[4,3,3,3,5],borderColor:L,backgroundColor:'rgba(127,210,143,.15)'},{label:'Instamart',data:[3,2,5,4,4],borderColor:M,backgroundColor:'rgba(169,194,174,.1)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{r:{min:0,max:5,ticks:{display:false},grid:{color:'rgba(248,203,70,.12)'},angleLines:{color:'rgba(248,203,70,.12)'}}}}});
+new Chart(document.getElementById('nov'),{type:'bar',data:{labels:Q,datasets:[{data:[4928,6020,7362,9203,11679,13300,14386,17132,20940],backgroundColor:[...Array(8).fill(G),Y],borderRadius:6}]},options:{...op,plugins:{legend:{display:false}}}});
+new Chart(document.getElementById('mar'),{type:'line',data:{labels:Q,datasets:[{label:'Adj. EBITDA % NOV',data:[-0.2,-1.7,-2.4,-1.8,-1.3,0,0.3,0.6,0.9],borderColor:Y,backgroundColor:Y,tension:.35},{label:'Contribution % NOV',data:[4.7,3.8,3.9,3.9,4.6,5.5,5.4,5.3,5.3],borderColor:L,backgroundColor:L,tension:.35}]},options:op});
+const P=['Q2FY26','Q3FY26','Q4FY26','Q1FY27','Q2FY27','Q3FY27E','Q4FY27E','Q1FY28E','Q2FY28E','Q3FY28E','Q4FY28E'];
+new Chart(document.getElementById('path'),{type:'line',data:{labels:P,datasets:[{label:'Actual',data:[1816,2027,2243,2443,2751,null,null,null,null,null,null],borderColor:Y,backgroundColor:Y,tension:.25},{label:'Guidance (interpolated)',data:[null,null,null,null,2751,3126,3500,3875,4250,4625,5000],borderColor:L,backgroundColor:L,borderDash:[6,4],tension:.25},{label:'Run-rate 308/qtr',data:[null,null,null,null,2751,3059,3367,3675,3983,4291,4599],borderColor:M,backgroundColor:M,borderDash:[2,4],tension:.25}]},options:op});
+new Chart(document.getElementById('cust'),{type:'bar',data:{labels:['Open with one specific need','Use reorder or search','Want fast checkout','Say checkout picks rarely useful'],datasets:[{data:[72,64,78,56],backgroundColor:[Y,G,Y,G],borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{max:100,grid:{color:'rgba(248,203,70,.08)'}},y:{grid:{display:false}}}}});
+</script>
+</body></html>
